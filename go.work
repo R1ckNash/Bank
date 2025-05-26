@@ -1,0 +1,8 @@
+go 1.24.3
+
+use (
+	./services/account
+	./services/auth
+	./services/notification
+	./services/payment
+)
