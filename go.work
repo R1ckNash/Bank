@@ -5,4 +5,5 @@ use (
 	./services/auth
 	./services/notification
 	./services/payment
+	.
 )
