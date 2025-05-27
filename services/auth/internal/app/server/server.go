@@ -1,9 +1,9 @@
 package server
 
 import (
-	pkgerrors "Bank/pkg/errors"
 	"context"
 	"fmt"
+	pkgerrors "github.com/R1ckNash/Bank/pkg/errors"
 	"go.uber.org/zap"
 	"net"
 	"net/http"

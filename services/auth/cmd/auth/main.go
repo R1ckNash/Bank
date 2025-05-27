@@ -1,8 +1,6 @@
 package main
 
 import (
-	"Bank/pkg/postgres"
-	"Bank/pkg/transaction_manager"
 	"auth/internal/app/config"
 	"auth/internal/app/delivery/http/registration"
 	"auth/internal/app/logger"
@@ -10,6 +8,8 @@ import (
 	"auth/internal/app/server"
 	"auth/internal/app/services/auth"
 	"context"
+	"github.com/R1ckNash/Bank/pkg/postgres"
+	"github.com/R1ckNash/Bank/pkg/transaction_manager"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
@@ -53,6 +53,7 @@ func main() {
 	authService := auth.NewAuthService(auth.Deps{ // Dependency injection
 		UserStorage:        storage,
 		TransactionManager: txManager,
+		Logger:             logg,
 	})
 
 	// delivery
@@ -63,7 +64,7 @@ func main() {
 		middleware.Recoverer,
 	)
 
-	r.Post("/url", registration.New(logg, authService))
+	r.Post("/registration", registration.New(logg, authService))
 
 	// app init
 	port, err := strconv.Atoi(cfg.Port)

@@ -1,9 +1,9 @@
 package transaction_manager
 
 import (
-	"Bank/pkg/postgres"
 	"context"
 	"fmt"
+	"github.com/R1ckNash/Bank/pkg/postgres"
 	"github.com/jackc/pgx/v5"
 )
 

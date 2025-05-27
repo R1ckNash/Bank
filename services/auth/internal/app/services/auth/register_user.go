@@ -1,12 +1,13 @@
 package auth
 
 import (
-	pkgerrors "Bank/pkg/errors"
-	"Bank/pkg/helpers"
-	"Bank/pkg/transaction_manager"
 	"auth/internal/app/models"
 	"auth/internal/app/repository/user_storage"
 	"context"
+	pkgerrors "github.com/R1ckNash/Bank/pkg/errors"
+	"github.com/R1ckNash/Bank/pkg/helpers"
+	"github.com/R1ckNash/Bank/pkg/transaction_manager"
+
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,7 +18,7 @@ func (as *authService) RegisterUser(ctx context.Context, user *models.User) erro
 
 	// TODO: idempotency
 
-	log := as.logger.With(zap.String("op", api), zap.String("email", user.Email))
+	log := as.Logger.With(zap.String("op", api), zap.String("email", user.Email))
 
 	log.Info("registration new user")
 

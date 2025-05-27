@@ -29,7 +29,7 @@ type TransactionManager interface {
 type Deps struct {
 	UserStorage
 	TransactionManager
-	logger *zap.Logger
+	Logger *zap.Logger
 }
 
 type authService struct {

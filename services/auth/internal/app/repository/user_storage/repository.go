@@ -1,8 +1,8 @@
 package user_storage
 
 import (
-	"Bank/pkg/transaction_manager"
 	"context"
+	"github.com/R1ckNash/Bank/pkg/transaction_manager"
 )
 
 type UserStorage struct {

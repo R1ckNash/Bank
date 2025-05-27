@@ -13,7 +13,7 @@ type Config struct {
 
 func LoadConfig() *Config {
 	cfg := &Config{
-		DBUrl:     getEnv("DB_URL", "postgres://postgres:postgres@localhost:5432/bank?sslmode=disable"),
+		DBUrl:     getEnv("DB_URL", "postgres://postgres:postgres@postgres:5432/bank?sslmode=disable"),
 		Port:      getEnv("PORT", "8080"),
 		JWTSecret: getEnv("JWT_SECRET", "supersecretkey"),
 	}

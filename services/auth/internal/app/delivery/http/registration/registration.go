@@ -1,9 +1,9 @@
 package registration
 
 import (
-	resp "Bank/pkg/api/response"
 	"auth/internal/app/models"
 	"context"
+	resp "github.com/R1ckNash/Bank/pkg/api/response"
 	"github.com/go-chi/render"
 	"go.uber.org/zap"
 	"net/http"

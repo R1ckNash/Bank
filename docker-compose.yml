@@ -23,7 +23,7 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/bank?sslmode=disable
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/bank?sslmode=disable
       JWT_SECRET: supersecret
     ports:
       - "8080:8080"
