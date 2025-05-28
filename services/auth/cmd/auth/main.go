@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth/internal/app/config"
+	"auth/internal/app/delivery/http/login"
 	"auth/internal/app/delivery/http/registration"
 	"auth/internal/app/logger"
 	"auth/internal/app/repository/user_storage"
@@ -53,6 +54,7 @@ func main() {
 	authService := auth.NewAuthService(auth.Deps{ // Dependency injection
 		UserStorage:        storage,
 		TransactionManager: txManager,
+		JwtSecret:          cfg.JWTSecret,
 		Logger:             logg,
 	})
 
@@ -65,6 +67,7 @@ func main() {
 	)
 
 	r.Post("/registration", registration.New(logg, authService))
+	r.Post("/login", login.New(logg, authService))
 
 	// app init
 	port, err := strconv.Atoi(cfg.Port)
@@ -94,5 +97,4 @@ func main() {
 	}
 
 	logg.Info("server stopped")
-
 }

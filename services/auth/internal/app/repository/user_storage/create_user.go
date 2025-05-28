@@ -9,12 +9,12 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (r *UserStorage) CreateUser(ctx context.Context, user *User) error {
+func (s *UserStorage) CreateUser(ctx context.Context, user *User) error {
 	const api = "user_storage.CreateUser"
 
 	query := `insert into users (username, email, password) values ($1, $2, $3) returning id`
 
-	if _, err := r.driver.GetQueryEngine(ctx).Exec(ctx, query, user.Username, user.Email, user.Password); err != nil {
+	if _, err := s.driver.GetQueryEngine(ctx).Exec(ctx, query, user.Username, user.Email, user.Password); err != nil {
 		var pgError *pgconn.PgError
 		if errors.As(err, &pgError) && pgError.Code == pgerrcode.UniqueViolation {
 			return pkgerrors.Wrap(api, models.ErrAlreadyExists)

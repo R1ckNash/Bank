@@ -16,6 +16,15 @@ func OK() Response {
 	}
 }
 
+func OKWithData(data map[string]interface{}) map[string]interface{} {
+	resp := make(map[string]interface{})
+
+	for k, v := range data {
+		resp[k] = v
+	}
+	return resp
+}
+
 func Error(msg string) Response {
 	return Response{
 		Status: StatusError,

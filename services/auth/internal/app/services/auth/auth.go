@@ -8,17 +8,20 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockery --name=AuthService --filename=auth_service_mock.go --disable-version-string
 type AuthService interface {
 	// RegisterUser - user creation
 	RegisterUser(ctx context.Context, user *models.User) error
+	// LoginUser - user log in
+	LoginUser(ctx context.Context, username, password string) (string, error)
 }
 
 //go:generate mockery --name=UserStorage --filename=user_storage_mock.go --disable-version-string
 type UserStorage interface {
 	// CreateUser - user creation
-	//
-	// @errors: models.ErrAlreadyExists
 	CreateUser(ctx context.Context, user *user_storage.User) error
+	// GetByUsername - get user by username
+	GetByUsername(ctx context.Context, username string) (*user_storage.User, error)
 }
 
 // TransactionManager trx manager
@@ -29,7 +32,8 @@ type TransactionManager interface {
 type Deps struct {
 	UserStorage
 	TransactionManager
-	Logger *zap.Logger
+	JwtSecret string
+	Logger    *zap.Logger
 }
 
 type authService struct {
