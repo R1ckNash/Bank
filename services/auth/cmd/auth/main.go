@@ -4,6 +4,7 @@ import (
 	"auth/internal/app/config"
 	"auth/internal/app/delivery/http/login"
 	"auth/internal/app/delivery/http/registration"
+	"auth/internal/app/delivery/http/verification"
 	"auth/internal/app/logger"
 	"auth/internal/app/repository/user_storage"
 	"auth/internal/app/server"
@@ -68,6 +69,7 @@ func main() {
 
 	r.Post("/registration", registration.New(logg, authService))
 	r.Post("/login", login.New(logg, authService))
+	r.Get("/user/verify/{user_id}", verification.New(logg, authService))
 
 	// app init
 	port, err := strconv.Atoi(cfg.Port)

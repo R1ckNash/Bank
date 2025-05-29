@@ -14,6 +14,8 @@ type AuthService interface {
 	RegisterUser(ctx context.Context, user *models.User) error
 	// LoginUser - user log in
 	LoginUser(ctx context.Context, username, password string) (string, error)
+	// VerifyUser - if user exist
+	VerifyUser(ctx context.Context, id int64) bool
 }
 
 //go:generate mockery --name=UserStorage --filename=user_storage_mock.go --disable-version-string
@@ -22,6 +24,8 @@ type UserStorage interface {
 	CreateUser(ctx context.Context, user *user_storage.User) error
 	// GetByUsername - get user by username
 	GetByUsername(ctx context.Context, username string) (*user_storage.User, error)
+	// GetByID - get user by id
+	GetByID(ctx context.Context, userID int64) (*user_storage.User, error)
 }
 
 // TransactionManager trx manager
