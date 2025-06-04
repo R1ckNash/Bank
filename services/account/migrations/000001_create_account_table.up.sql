@@ -1,10 +1,13 @@
-CREATE TABLE IF NOT EXISTS accounts (
-    account_id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS account (
+    id SERIAL PRIMARY KEY,
+    owner_id VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
+    currency VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    is_blocked BOOLEAN,
     balance DECIMAL(15,2) DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email);
+CREATE INDEX IF NOT EXISTS idx_account_email ON account(email);

@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
-    container_name: bank-auth
+    container_name: bank-auth-service
     depends_on:
       - postgres
     environment:
@@ -27,6 +27,21 @@ services:
       JWT_SECRET: supersecret
     ports:
       - "8080:8080"
+    restart: unless-stopped
+
+  account:
+    build:
+      context: .
+      dockerfile: services/account/Dockerfile
+    container_name: bank-account-service
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+    ports:
+      - "8081:8081"
     restart: unless-stopped
 
 volumes:

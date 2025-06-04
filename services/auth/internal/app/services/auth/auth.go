@@ -22,9 +22,9 @@ type AuthService interface {
 type UserStorage interface {
 	// CreateUser - user creation
 	CreateUser(ctx context.Context, user *user_storage.User) error
-	// GetByUsername - get user by username
+	// GetByUsername - get_handler user by username
 	GetByUsername(ctx context.Context, username string) (*user_storage.User, error)
-	// GetByID - get user by id
+	// GetByID - get_handler user by id
 	GetByID(ctx context.Context, userID int64) (*user_storage.User, error)
 }
 
