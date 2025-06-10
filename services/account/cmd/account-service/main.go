@@ -13,7 +13,6 @@ import (
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -76,17 +75,17 @@ func main() {
 	)
 	defer stop()
 
-	run(ctx, server)
+	run(ctx, server, log)
 }
 
-func run(ctx context.Context, server *http_server.Server) error {
+func run(ctx context.Context, server *http_server.Server, log *slog.Logger) error {
 	// Start HTTP server in a goroutine
 	go server.MustRun()
 
 	// Wait until we receive a shutdown signal
 	<-ctx.Done()
 
-	log.Println("server: shutting down server gracefully")
+	log.Info("server: shutting down server gracefully")
 
 	// Create a context with a 20-second timeout
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -97,7 +96,7 @@ func run(ctx context.Context, server *http_server.Server) error {
 		return fmt.Errorf("server: shutdown: %w", err)
 	}
 
-	log.Println("server: shutdown")
+	log.Info("server: shutdown")
 	return nil
 }
 

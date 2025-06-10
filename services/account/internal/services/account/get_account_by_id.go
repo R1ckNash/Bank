@@ -15,6 +15,8 @@ func (s *accountService) GetAccount(ctx context.Context, accountID int64) (model
 		slog.String("op", op),
 	)
 
+	log.Info("Processing request for get account", slog.Int64("accountId", accountID))
+
 	accDB, err := s.AccountStorage.GetByID(ctx, accountID)
 	if err != nil {
 		log.Error("failed to retrieve accDB by id", slog_helper.Err(err))

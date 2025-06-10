@@ -1,3 +1,4 @@
 env: "dev"
 dbUrl: "postgres://postgres:postgres@postgres:5432/bank?sslmode=disable"
+port: 8081
 #dbUrl: "postgres://postgres:postgres@localhost:5432/bank?sslmode=disable"

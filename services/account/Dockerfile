@@ -13,6 +13,6 @@ FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 COPY --from=builder /app/account-service /app/account-service
-COPY services/account/config/local.yaml ./config/local.yaml
+COPY services/account/config/local.yaml /config/local.yaml
 
 CMD ["/app/account-service"]
