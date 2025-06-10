@@ -31,7 +31,7 @@ func New(log *slog.Logger, accountCreator AccountCreator) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		log.Info("Starting account registration")
+		log.Info("Received request for account registration")
 
 		var req Request
 
