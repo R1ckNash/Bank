@@ -5,6 +5,7 @@ import (
 	"account/internal/http-server/handlers/get_handler"
 	"account/internal/http-server/handlers/post_handler"
 	http_server "account/internal/http-server/server"
+	httpdelivery "account/internal/middleware"
 	"account/internal/repository/account_storage"
 	"account/internal/services/account"
 	"context"
@@ -13,6 +14,7 @@ import (
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -57,6 +59,7 @@ func main() {
 
 	router.Use(
 		middleware.Heartbeat("/ping"),
+		httpdelivery.PrometheusMiddleware,
 		middleware.RequestID,
 		middleware.Recoverer,
 		middleware.URLFormat,
@@ -67,7 +70,9 @@ func main() {
 		r.Post("/create", post_handler.New(log, accountService))
 	})
 
-	server := http_server.New(log, router, 8081)
+	router.Handle("/metrics", promhttp.Handler())
+
+	server := http_server.New(log, router, cfg.Port)
 
 	ctx, stop := signal.NotifyContext(parent,
 		syscall.SIGINT,
