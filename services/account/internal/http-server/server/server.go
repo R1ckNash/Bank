@@ -36,7 +36,7 @@ func (a *Server) Run() error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	log.Info("starting http server: ", slog.String("addr", l.Addr().String()))
+	log.Info("starting rest server: ", slog.String("addr", l.Addr().String()))
 
 	if err := a.httpServer.Serve(l); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -46,8 +46,8 @@ func (a *Server) Run() error {
 }
 
 func (a *Server) Stop(ctx context.Context) error {
-	const op = "http.Stop"
+	const op = "rest.Stop"
 	a.log.With(slog.String("op", op)).
-		Info("stopping http server", slog.Int("port", a.port))
+		Info("stopping rest server", slog.Int("port", a.port))
 	return a.httpServer.Shutdown(ctx)
 }

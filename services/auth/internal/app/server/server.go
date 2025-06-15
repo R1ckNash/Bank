@@ -28,7 +28,7 @@ func New(log *zap.Logger, handler http.Handler, port int) *Server {
 func (s *Server) Run() error {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", s.port))
 	if err != nil {
-		return pkgerrors.Wrap("http listen error", err)
+		return pkgerrors.Wrap("rest listen error", err)
 	}
 
 	s.log.Info("HTTP server started", zap.String("addr", l.Addr().String()))

@@ -1,4 +1,4 @@
-// internal/metrics/http.go
+// internal/metrics/rest.go
 package metrics
 
 import (

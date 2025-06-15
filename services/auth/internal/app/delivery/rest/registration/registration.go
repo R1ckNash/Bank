@@ -1,16 +1,18 @@
 package registration
 
 import (
-	"auth/internal/app/models"
+	"auth/domain"
 	"context"
 	resp "github.com/R1ckNash/Bank/pkg/api/response"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type UserCreator interface {
-	RegisterUser(ctx context.Context, user *models.User) error
+	RegisterUser(ctx context.Context, user *domain.User) error
 }
 
 type Request struct {
@@ -35,10 +37,12 @@ func New(logger *zap.Logger, userCreator UserCreator) http.HandlerFunc {
 			return
 		}
 
-		user := &models.User{
-			Username: req.Username,
-			Email:    req.Email,
-			Password: req.Password,
+		user := &domain.User{
+			ID:        uuid.New(),
+			Username:  req.Username,
+			Email:     req.Email,
+			Password:  req.Password,
+			CreatedAt: time.Now(),
 		}
 
 		err = userCreator.RegisterUser(context.Background(), user)

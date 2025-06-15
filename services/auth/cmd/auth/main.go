@@ -2,13 +2,13 @@ package main
 
 import (
 	"auth/internal/app/config"
-	"auth/internal/app/delivery/http/login"
-	"auth/internal/app/delivery/http/registration"
-	"auth/internal/app/delivery/http/verification"
+	"auth/internal/app/delivery/rest/login"
+	"auth/internal/app/delivery/rest/registration"
+	"auth/internal/app/delivery/rest/verification"
 	"auth/internal/app/logger"
-	"auth/internal/app/repository/user_storage"
+	userstorage "auth/internal/app/repository/postgres"
 	"auth/internal/app/server"
-	"auth/internal/app/services/auth"
+	"auth/service"
 	"context"
 	"github.com/R1ckNash/Bank/pkg/postgres"
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
@@ -37,7 +37,7 @@ func main() {
 	}
 	defer logg.Sync()
 
-	// repository
+	// pg conn
 	pool, err := postgres.NewConnectionPool(ctx, cfg.DBUrl,
 		postgres.WithMaxConnIdleTime(5*time.Minute),
 		postgres.WithMaxConnLifeTime(time.Hour),
@@ -48,12 +48,13 @@ func main() {
 		logg.Fatal("db connection error", zap.Error(err))
 	}
 
+	// repository
 	txManager := transaction_manager.New(pool)
-	storage := user_storage.New(txManager)
+	userRepo := userstorage.New(txManager)
 
 	// services
-	authService := auth.NewAuthService(auth.Deps{ // Dependency injection
-		UserStorage:        storage,
+	authService := service.NewAuthService(service.Deps{
+		UserRepository:     userRepo,
 		TransactionManager: txManager,
 		JwtSecret:          cfg.JWTSecret,
 		Logger:             logg,
@@ -65,6 +66,7 @@ func main() {
 		middleware.RequestID,
 		middleware.URLFormat,
 		middleware.Recoverer,
+		middleware.Timeout(5*time.Second),
 	)
 
 	r.Post("/registration", registration.New(logg, authService))

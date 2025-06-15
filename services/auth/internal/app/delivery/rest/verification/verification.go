@@ -5,13 +5,13 @@ import (
 	resp "github.com/R1ckNash/Bank/pkg/api/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"net/http"
-	"strconv"
 )
 
 type UserVerificator interface {
-	VerifyUser(ctx context.Context, id int64) bool
+	VerifyUser(ctx context.Context, id uuid.UUID) bool
 }
 
 type Request struct {
@@ -21,13 +21,13 @@ type Request struct {
 func New(logger *zap.Logger, userVerificator UserVerificator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userIDStr := chi.URLParam(r, "user_id")
-		userID, err := strconv.ParseInt(userIDStr, 10, 64)
+		userUUID, err := uuid.Parse(userIDStr)
 		if err != nil {
 			http.Error(w, `{"error": "invalid user_id"}`, http.StatusBadRequest)
 			return
 		}
 
-		isExist := userVerificator.VerifyUser(r.Context(), userID)
+		isExist := userVerificator.VerifyUser(r.Context(), userUUID)
 		if !isExist {
 			http.Error(w, `{"error": "user not found"}`, http.StatusNotFound)
 			return
