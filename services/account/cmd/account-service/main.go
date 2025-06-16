@@ -10,6 +10,7 @@ import (
 	"account/internal/services/account"
 	"context"
 	"fmt"
+	"github.com/R1ckNash/Bank/pkg/middleware/auth"
 	"github.com/R1ckNash/Bank/pkg/postgres"
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
 	"github.com/go-chi/chi/v5"
@@ -63,11 +64,12 @@ func main() {
 		middleware.RequestID,
 		middleware.Recoverer,
 		middleware.URLFormat,
+		auth.AuthMiddleware(cfg.JWTSecret),
 	)
 
 	router.Route("/account", func(r chi.Router) {
 		r.Get("/{accountId}", get_handler.New(log, accountService))
-		r.Post("/create", post_handler.New(log, accountService))
+		r.Post("/create", post_handler.New(log, accountService, cfg))
 	})
 
 	router.Handle("/metrics", promhttp.Handler())

@@ -7,9 +7,15 @@ import (
 )
 
 type Config struct {
-	Env   string `yaml:"env" env-default:"local" env-required:"true"`
-	DBUrl string `yaml:"dbUrl" env-required:"true"`
-	Port  int    `yaml:"port" env-default:"8081"`
+	Env       string `yaml:"env" env-default:"local" env-required:"true"`
+	DBUrl     string `yaml:"dbUrl" env-required:"true"`
+	Port      int    `yaml:"port" env-default:"8081"`
+	JWTSecret string `yaml:"jwt-secret" env-default:"supersecretkey"`
+
+	AuthService struct {
+		Host string `yaml:"host" env-default:"bank-auth-service"`
+		Port int    `yaml:"port" env-default:"8080"`
+	} `yaml:"auth_service"`
 }
 
 func MustLoad() *Config {

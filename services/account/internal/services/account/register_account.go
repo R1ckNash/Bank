@@ -19,7 +19,7 @@ func (s *accountService) RegisterAccount(ctx context.Context, acc *models.Accoun
 		slog.String("op", op),
 	)
 
-	log.Info("Processing request for create account", slog.String("owner_id", acc.OwnerID))
+	log.Info("Processing request for create account", slog.String("owner_id", acc.OwnerID.String()))
 
 	//todo add validation
 	//todo add idempotency

@@ -1,31 +1,33 @@
 package config
 
 import (
+	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"os"
 )
 
 type Config struct {
-	DBUrl     string
-	Port      string
-	JWTSecret string
+	Env       string `yaml:"env" env-default:"local" env-required:"true"`
+	DBUrl     string `yaml:"dbUrl" env-required:"true"`
+	Port      int    `yaml:"port" env-default:"8080"`
+	JWTSecret string `yaml:"jwt-secret" env-default:"supersecretkey"`
 }
 
-func LoadConfig() *Config {
-	cfg := &Config{
-		DBUrl:     getEnv("DB_URL", "postgres://postgres:postgres@postgres:5432/bank?sslmode=disable"),
-		Port:      getEnv("PORT", "8080"),
-		JWTSecret: getEnv("JWT_SECRET", "supersecretkey"),
+func MustLoad() *Config {
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		log.Fatal("Config path could not be empty")
 	}
 
-	return cfg
-}
-
-func getEnv(key, defaultValue string) string {
-	val, exists := os.LookupEnv(key)
-	if !exists {
-		log.Printf("variable %s didn't set, using default value: %s", key, defaultValue)
-		return defaultValue
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		log.Fatalf("config file does not exists: %s", configPath)
 	}
-	return val
+
+	var cfg Config
+
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		log.Fatalf("could not read config: %s", err)
+	}
+
+	return &cfg
 }

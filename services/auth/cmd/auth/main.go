@@ -18,7 +18,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -28,7 +27,7 @@ func main() {
 	defer cancel()
 
 	// config
-	cfg := config.LoadConfig()
+	cfg := config.MustLoad()
 
 	// logger init
 	logg, err := logger.NewLogger()
@@ -63,23 +62,20 @@ func main() {
 	// delivery
 	r := chi.NewRouter()
 	r.Use(
+		middleware.Heartbeat("/ping"),
 		middleware.RequestID,
 		middleware.URLFormat,
 		middleware.Recoverer,
 		middleware.Timeout(5*time.Second),
 	)
 
-	r.Post("/registration", registration.New(logg, authService))
-	r.Post("/login", login.New(logg, authService))
-	r.Get("/user/verify/{user_id}", verification.New(logg, authService))
+	r.Route("/user", func(r chi.Router) {
+		r.Post("/registration", registration.New(logg, authService))
+		r.Post("/login", login.New(logg, authService))
+		r.Get("/verify/{user_id}", verification.New(logg, authService))
+	})
 
-	// app init
-	port, err := strconv.Atoi(cfg.Port)
-	if err != nil {
-		logg.Fatal("error parsing port", zap.Error(err))
-	}
-
-	application := server.New(logg, r, port)
+	application := server.New(logg, r, cfg.Port)
 
 	// graceful shutdown
 	go func() {

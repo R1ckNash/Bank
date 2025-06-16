@@ -1,10 +1,13 @@
 package account_storage
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Account struct {
 	ID        int64     `db:"id"`
-	OwnerID   string    `db:"owner_id"`
+	OwnerID   uuid.UUID `db:"owner_id"`
 	Name      string    `db:"name"`
 	Currency  string    `db:"currency"`
 	Email     string    `db:"email"`

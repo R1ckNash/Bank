@@ -13,5 +13,6 @@ FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 COPY --from=builder /app/auth-service /app/auth-service
+COPY services/auth/config/local.yaml /config/local.yaml
 
 CMD ["/app/auth-service"]

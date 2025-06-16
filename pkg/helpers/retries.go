@@ -20,7 +20,7 @@ func WithRetries(ctx context.Context, action func(ctx context.Context) error) er
 		ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 		defer cancel()
 
-		err := action(ctx)
+		err = action(ctx)
 		if err == nil {
 			return nil
 		}

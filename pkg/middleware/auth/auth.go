@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"github.com/golang-jwt/jwt/v5"
-	"go.uber.org/zap"
 	"net/http"
 	"strings"
 )
@@ -12,7 +11,7 @@ type contextKey string
 
 const userIDContextKey = contextKey("userID")
 
-func AuthMiddleware(secret string, logger *zap.Logger) func(http.Handler) http.Handler {
+func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -31,7 +30,6 @@ func AuthMiddleware(secret string, logger *zap.Logger) func(http.Handler) http.H
 			})
 
 			if err != nil || !token.Valid {
-				logger.Warn("Invalid JWT", zap.Error(err))
 				http.Error(w, `{"error": "invalid token"}`, http.StatusUnauthorized)
 				return
 			}
@@ -42,20 +40,20 @@ func AuthMiddleware(secret string, logger *zap.Logger) func(http.Handler) http.H
 				return
 			}
 
-			userID, ok := claims["user_id"].(float64)
+			userID, ok := claims["user_id"].(string)
 			if !ok {
 				http.Error(w, `{"error": "user_id not found in token"}`, http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), userIDContextKey, int64(userID))
+			ctx := context.WithValue(r.Context(), userIDContextKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-func GetUserID(r *http.Request) (int64, bool) {
+func GetUserID(r *http.Request) (string, bool) {
 	val := r.Context().Value(userIDContextKey)
-	userID, ok := val.(int64)
+	userID, ok := val.(string)
 	return userID, ok
 }

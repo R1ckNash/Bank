@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS account (
     id SERIAL PRIMARY KEY,
-    owner_id VARCHAR(255) NOT NULL,
+    owner_id uuid NOT NULL,
     name VARCHAR(255) NOT NULL,
     currency VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
