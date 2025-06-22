@@ -1,13 +1,14 @@
 package main
 
 import (
-	"auth/internal/app/config"
-	"auth/internal/app/delivery/rest/login"
-	"auth/internal/app/delivery/rest/registration"
-	"auth/internal/app/delivery/rest/verification"
-	"auth/internal/app/logger"
-	userstorage "auth/internal/app/repository/postgres"
-	"auth/internal/app/server"
+	"auth/internal/config"
+	"auth/internal/delivery/rest/login"
+	"auth/internal/delivery/rest/registration"
+	"auth/internal/delivery/rest/verification"
+	"auth/internal/kafka"
+	"auth/internal/logger"
+	userstorage "auth/internal/repository/postgres"
+	"auth/internal/server"
 	"auth/service"
 	"context"
 	"github.com/R1ckNash/Bank/pkg/postgres"
@@ -47,6 +48,13 @@ func main() {
 		logg.Fatal("db connection error", zap.Error(err))
 	}
 
+	// kafka producer
+	kafkaProducer, err := kafka.NewProducer([]string{"kafka:9092"}, logg)
+	if err != nil {
+		logg.Fatal("cannot create kafka producer", zap.Error(err))
+	}
+	defer kafkaProducer.Close()
+
 	// repository
 	txManager := transaction_manager.New(pool)
 	userRepo := userstorage.New(txManager)
@@ -55,6 +63,7 @@ func main() {
 	authService := service.NewAuthService(service.Deps{
 		UserRepository:     userRepo,
 		TransactionManager: txManager,
+		Producer:           kafkaProducer,
 		JwtSecret:          cfg.JWTSecret,
 		Logger:             logg,
 	})

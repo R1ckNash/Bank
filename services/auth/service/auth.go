@@ -34,6 +34,11 @@ type UserRepository interface {
 	GetByID(ctx context.Context, userID uuid.UUID) (*domain.User, error)
 }
 
+//go:generate mockery --name=EventProducer
+type EventProducer interface {
+	SendMessage(topic, key string, message []byte) error
+}
+
 // TransactionManager trx manager
 type TransactionManager interface {
 	RunReadCommitted(ctx context.Context, accessMode pgx.TxAccessMode, f func(ctx context.Context) error) error
@@ -42,6 +47,7 @@ type TransactionManager interface {
 type Deps struct {
 	UserRepository
 	TransactionManager
+	Producer  EventProducer
 	JwtSecret string
 	Logger    *zap.Logger
 }
@@ -91,6 +97,8 @@ func (as *authService) RegisterUser(ctx context.Context, user *domain.User) erro
 		log.Warn("error saving user", zap.Error(err))
 		return pkgerrors.Wrap(api, err)
 	}
+
+	as.Producer.SendMessage("auth-events", user.Email, []byte(`{"event_type":"registration","status":"success"}`))
 
 	return nil
 }
