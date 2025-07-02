@@ -5,6 +5,7 @@ import (
 	"account/internal/repository/account_storage"
 	slog_helper "account/internal/slog"
 	"context"
+	"encoding/json"
 	pkgerrors "github.com/R1ckNash/Bank/pkg/errors"
 	"github.com/R1ckNash/Bank/pkg/helpers"
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
@@ -52,6 +53,14 @@ func (s *accountService) RegisterAccount(ctx context.Context, acc *models.Accoun
 		log.Warn("error saving account", slog_helper.Err(err))
 		return pkgerrors.Wrap(op, err)
 	}
+
+	accJson, err := json.Marshal(accountDTO)
+	if err != nil {
+		log.Error("could not marshall created account with : ", slog.Int64("id", accountDTO.ID))
+		return pkgerrors.Wrap(op, err)
+	}
+
+	s.EventProducer.SendMessage("AccountCreated", acc.Email, accJson)
 
 	return nil
 }

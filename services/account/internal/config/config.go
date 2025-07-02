@@ -16,6 +16,10 @@ type Config struct {
 		Host string `yaml:"host" env-default:"bank-auth-service"`
 		Port int    `yaml:"port" env-default:"8080"`
 	} `yaml:"auth_service"`
+
+	Kafka struct {
+		Host string `yaml:"host"`
+	} `yaml:"kafka"`
 }
 
 func MustLoad() *Config {

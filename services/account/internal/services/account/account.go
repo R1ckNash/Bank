@@ -20,6 +20,11 @@ type AccountStorage interface {
 	GetByID(ctx context.Context, accountID int64) (account_storage.Account, error)
 }
 
+//go:generate mockery --name=EventProducer
+type EventProducer interface {
+	SendMessage(topic, key string, message []byte) error
+}
+
 // TransactionManager trx manager
 type TransactionManager interface {
 	RunReadCommitted(ctx context.Context, accessMode pgx.TxAccessMode, f func(ctx context.Context) error) error
@@ -28,6 +33,7 @@ type TransactionManager interface {
 type Deps struct {
 	AccountStorage
 	TransactionManager
+	EventProducer
 	Logger *slog.Logger
 }
 

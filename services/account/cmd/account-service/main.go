@@ -5,6 +5,7 @@ import (
 	"account/internal/http-server/handlers/get_handler"
 	"account/internal/http-server/handlers/post_handler"
 	http_server "account/internal/http-server/server"
+	"account/internal/kafka"
 	httpdelivery "account/internal/middleware"
 	"account/internal/repository/account_storage"
 	"account/internal/services/account"
@@ -47,6 +48,13 @@ func main() {
 		panic("db connection error")
 	}
 
+	// kafka
+	producer, err := kafka.NewProducer([]string{cfg.Kafka.Host}, log)
+	if err != nil {
+		panic("could not create kafka producer")
+	}
+	defer producer.Close()
+
 	txManager := transaction_manager.New(pool)
 	storage := account_storage.New(txManager)
 
@@ -54,6 +62,7 @@ func main() {
 		AccountStorage:     storage,
 		TransactionManager: txManager,
 		Logger:             log,
+		EventProducer:      producer,
 	})
 
 	router := chi.NewRouter()

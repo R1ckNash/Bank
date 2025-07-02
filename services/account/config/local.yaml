@@ -8,3 +8,6 @@ jwt-secret: "supersecretkey"
 auth_service:
   host: "bank-auth-service"
   port: 8080
+
+kafka:
+  host: "kafka:9092"
