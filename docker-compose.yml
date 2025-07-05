@@ -6,23 +6,74 @@ services:
     container_name: bank-postgres
     restart: always
     environment:
-      POSTGRES_DB: bank
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./scripts/migrations:/docker-entrypoint-initdb.d
+      - ./init-multi-db.sh:/docker-entrypoint-initdb.d/init-multi-db.sh:ro
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
-    container_name: zookeeper
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: bank-auth-service
+    depends_on:
+      - migrate-auth
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      CONFIG_PATH: "/config/local.yaml"
     ports:
-      - "2181:2181"
+      - "8080:8080"
+    restart: unless-stopped
+
+  migrate-auth:
+    image: migrate/migrate
+    depends_on:
+      - postgres
+    volumes:
+      - ./services/auth/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://postgres:postgres@postgres:5432/auth?sslmode=disable",
+        "up"
+      ]
+    restart: on-failure
+
+  account:
+    build:
+      context: .
+      dockerfile: services/account/Dockerfile
+    container_name: bank-account-service
+    depends_on:
+      - migrate-account
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      CONFIG_PATH: "/config/local.yaml"
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+
+  migrate-account:
+    image: migrate/migrate
+    depends_on:
+      - postgres
+    volumes:
+      - ./services/account/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://postgres:postgres@postgres:5432/account?sslmode=disable",
+        "up"
+      ]
+    restart: on-failure
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
@@ -53,37 +104,14 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
-  auth:
-    build:
-      context: .
-      dockerfile: services/auth/Dockerfile
-    container_name: bank-auth-service
-    depends_on:
-      - postgres
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres
-      CONFIG_PATH: "/config/local.yaml"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "8080:8080"
-    restart: unless-stopped
-
-  account:
-    build:
-      context: .
-      dockerfile: services/account/Dockerfile
-    container_name: bank-account-service
-    depends_on:
-      - postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres
-      CONFIG_PATH: "/config/local.yaml"
-    ports:
-      - "8082:8082"
-    restart: unless-stopped
+      - "2181:2181"
 
 volumes:
   pgdata:

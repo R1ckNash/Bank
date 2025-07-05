@@ -1,5 +1,5 @@
 env: "dev"
-dbUrl: "postgres://postgres:postgres@postgres:5432/bank?sslmode=disable"
+dbUrl: "postgres://postgres:postgres@postgres:5432/auth?sslmode=disable"
 port: 8080
 jwt-secret: "supersecretkey"
-#dbUrl: "postgres://postgres:postgres@localhost:5432/bank?sslmode=disable"
+#dbUrl: "postgres://postgres:postgres@localhost:5432/auth?sslmode=disable"
