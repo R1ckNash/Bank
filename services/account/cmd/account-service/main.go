@@ -68,10 +68,11 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Use(
-		middleware.Heartbeat("/ping"),
-		httpdelivery.PrometheusMiddleware,
-		middleware.RequestID,
 		middleware.Recoverer,
+		middleware.Logger,
+		httpdelivery.PrometheusMiddleware,
+		middleware.Heartbeat("/ping"),
+		middleware.RequestID,
 		middleware.URLFormat,
 		auth.AuthMiddleware(cfg.JWTSecret),
 	)
