@@ -1,8 +1,9 @@
-package service
+package auth
 
 import (
 	"auth/domain"
 	"context"
+	"fmt"
 	pkgerrors "github.com/R1ckNash/Bank/pkg/errors"
 	"github.com/R1ckNash/Bank/pkg/helpers"
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
@@ -16,22 +17,23 @@ import (
 
 //go:generate mockery --name=AuthService --filename=auth_service_mock.go --disable-version-string
 type AuthService interface {
-	// RegisterUser - user creation
 	RegisterUser(ctx context.Context, user *domain.User) error
-	// LoginUser - user log in
 	LoginUser(ctx context.Context, username, password string) (string, error)
-	// VerifyUser - if user exist
 	VerifyUser(ctx context.Context, id uuid.UUID) bool
 }
 
-//go:generate mockery --name=UserRepository --filename=user_storage_mock.go --disable-version-string
+//go:generate mockery --name=UserRepository --filename=user_repository_mock.go --disable-version-string
 type UserRepository interface {
-	// StoreUser - user creation
 	StoreUser(ctx context.Context, user *domain.User) error
-	// GetByUsername - get_handler user by username
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
-	// GetByID - get_handler user by id
 	GetByID(ctx context.Context, userID uuid.UUID) (*domain.User, error)
+}
+
+//go:generate mockery --name=OutboxRepository --filename=outbox_repository_mock.go --disable-version-string
+type OutboxRepository interface {
+	AddMessage(ctx context.Context, msg *domain.OutboxMessage) error
+	GetUnsentMessages(ctx context.Context, limit int) ([]*domain.OutboxMessage, error)
+	MarkAsSent(ctx context.Context, id int64) error
 }
 
 //go:generate mockery --name=EventProducer
@@ -46,6 +48,7 @@ type TransactionManager interface {
 
 type Deps struct {
 	UserRepository
+	OutboxRepository
 	TransactionManager
 	Producer  EventProducer
 	JwtSecret string
@@ -79,6 +82,7 @@ func (as *authService) RegisterUser(ctx context.Context, user *domain.User) erro
 	}
 
 	user.Password = string(hashed)
+	eventPayload := fmt.Sprintf(`{"event_type":"registration","user_id":"%s","email":"%s","status":"success"}`, user.ID, user.Email)
 
 	err = helpers.WithRetries(ctx, func(ctx context.Context) error {
 		var err error
@@ -87,6 +91,18 @@ func (as *authService) RegisterUser(ctx context.Context, user *domain.User) erro
 				if err = as.UserRepository.StoreUser(txCtx, user); err != nil {
 					return err
 				}
+
+				outboxMsg := &domain.OutboxMessage{
+					AggregateType: "user",
+					AggregateID:   user.ID,
+					Type:          "user_registered",
+					Payload:       eventPayload,
+					CreatedAt:     time.Now(),
+				}
+				if err := as.OutboxRepository.AddMessage(txCtx, outboxMsg); err != nil {
+					return err
+				}
+
 				return nil
 			},
 		)
@@ -97,8 +113,6 @@ func (as *authService) RegisterUser(ctx context.Context, user *domain.User) erro
 		log.Warn("error saving user", zap.Error(err))
 		return pkgerrors.Wrap(api, err)
 	}
-
-	as.Producer.SendMessage("auth-events", user.Email, []byte(`{"event_type":"registration","status":"success"}`))
 
 	return nil
 }

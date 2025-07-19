@@ -1,4 +1,4 @@
-package postgres
+package user
 
 import (
 	"auth/domain"
@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type UserStorage struct {
+type UserRepository struct {
 	driver QueryEngineProvider
 }
 
@@ -19,14 +19,14 @@ type QueryEngineProvider interface {
 	GetQueryEngine(ctx context.Context) transaction_manager.QueryEngine
 }
 
-// New - returns UserStorage
-func New(driver QueryEngineProvider) *UserStorage {
-	return &UserStorage{
+// New - returns UserRepository
+func New(driver QueryEngineProvider) *UserRepository {
+	return &UserRepository{
 		driver: driver,
 	}
 }
 
-func (s *UserStorage) fetch(ctx context.Context, query string, args ...interface{}) (result []*domain.User, err error) {
+func (s *UserRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []*domain.User, err error) {
 	rows, err := s.driver.GetQueryEngine(ctx).Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (s *UserStorage) fetch(ctx context.Context, query string, args ...interface
 	return result, nil
 }
 
-func (s *UserStorage) StoreUser(ctx context.Context, user *domain.User) error {
+func (s *UserRepository) StoreUser(ctx context.Context, user *domain.User) error {
 	const api = "postgres.StoreUser"
 
 	query := `insert into users (id, username, email, password, created_at) values ($1, $2, $3, $4, $5) returning id`
@@ -70,7 +70,7 @@ func (s *UserStorage) StoreUser(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
-func (s *UserStorage) GetByID(ctx context.Context, userID uuid.UUID) (res *domain.User, err error) {
+func (s *UserRepository) GetByID(ctx context.Context, userID uuid.UUID) (res *domain.User, err error) {
 	const api = "postgres.GetByID"
 	query := `SELECT id, username, email, password, created_at FROM users WHERE id=$1`
 	list, err := s.fetch(ctx, query, userID)
@@ -87,7 +87,7 @@ func (s *UserStorage) GetByID(ctx context.Context, userID uuid.UUID) (res *domai
 	return
 }
 
-func (s *UserStorage) GetByUsername(ctx context.Context, username string) (res *domain.User, err error) {
+func (s *UserRepository) GetByUsername(ctx context.Context, username string) (res *domain.User, err error) {
 	const api = "postgres.GetByUsername"
 
 	query := `select id, username, email, password, created_at from users where username=$1`

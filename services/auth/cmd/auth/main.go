@@ -7,9 +7,11 @@ import (
 	"auth/internal/delivery/rest/verification"
 	"auth/internal/kafka"
 	"auth/internal/logger"
-	userstorage "auth/internal/repository/postgres"
+	"auth/internal/repository/postgres/outbox"
+	"auth/internal/repository/postgres/user"
 	"auth/internal/server"
-	"auth/service"
+	"auth/service/auth"
+	outboxworker "auth/service/outbox"
 	"context"
 	"github.com/R1ckNash/Bank/pkg/postgres"
 	"github.com/R1ckNash/Bank/pkg/transaction_manager"
@@ -57,11 +59,16 @@ func main() {
 
 	// repository
 	txManager := transaction_manager.New(pool)
-	userRepo := userstorage.New(txManager)
+	userRepo := user.New(txManager)
+	outboxRepo := outbox.New(txManager)
+
+	outboxWorker := outboxworker.New(outboxRepo, kafkaProducer, logg, "auth-events", 10, 2*time.Second)
+	go outboxWorker.Run(ctx)
 
 	// services
-	authService := service.NewAuthService(service.Deps{
+	authService := auth.NewAuthService(auth.Deps{
 		UserRepository:     userRepo,
+		OutboxRepository:   outboxRepo,
 		TransactionManager: txManager,
 		Producer:           kafkaProducer,
 		JwtSecret:          cfg.JWTSecret,
@@ -71,10 +78,11 @@ func main() {
 	// delivery
 	r := chi.NewRouter()
 	r.Use(
+		middleware.Recoverer,
+		middleware.Logger,
 		middleware.Heartbeat("/ping"),
 		middleware.RequestID,
 		middleware.URLFormat,
-		middleware.Recoverer,
 		middleware.Timeout(5*time.Second),
 	)
 
